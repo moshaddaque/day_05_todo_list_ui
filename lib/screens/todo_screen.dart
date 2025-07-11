@@ -46,6 +46,8 @@ class _TodoScreenState extends State<TodoScreen> with TickerProviderStateMixin {
           );
         },
       ),
+
+      // floating action button
       floatingActionButton: AnimatedBuilder(
         animation: _fabAnimation,
         builder: (context, child) {

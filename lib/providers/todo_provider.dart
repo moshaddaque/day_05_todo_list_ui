@@ -78,39 +78,52 @@ class TodoProvider extends ChangeNotifier {
   // add todo
   void addTodo(Todo todo) {
     _todos.add(todo);
-    _saveTodos();
+    // Ensure state is updated before saving
     notifyListeners();
+    _saveTodos();
   }
 
   // delete todo
   void deleteTodo(String id) {
+    // Find and remove the todo with the given id
     _todos.removeWhere((element) => element.id == id);
-    _saveTodos();
+    // Ensure state is updated before saving
     notifyListeners();
+    _saveTodos();
   }
 
   // update todo
   void updateTodo(Todo todo) {
     final index = _todos.indexWhere((element) => element.id == todo.id);
     if (index == -1) return;
-    _todos[index] = todo;
-    _saveTodos();
-    notifyListeners();
+    
+    // Safety check to prevent index out of range errors
+    if (index >= 0 && index < _todos.length) {
+      _todos[index] = todo;
+      // Ensure state is updated before saving
+      notifyListeners();
+      _saveTodos();
+    }
   }
 
   // toggle todo status
   void toggleTodoStatus(String id) {
     final index = _todos.indexWhere((element) => element.id == id);
     if (index == -1) return;
-    final todo = _todos[index];
-    _todos[index] = todo.copyWith(
-      status:
-          todo.status == TaskStatus.pending
-              ? TaskStatus.completed
-              : TaskStatus.pending,
-    );
-    _saveTodos();
-    notifyListeners();
+    
+    // Safety check to prevent index out of range errors
+    if (index >= 0 && index < _todos.length) {
+      final todo = _todos[index];
+      _todos[index] = todo.copyWith(
+        status:
+            todo.status == TaskStatus.pending
+                ? TaskStatus.completed
+                : TaskStatus.pending,
+      );
+      // Ensure state is updated before saving
+      notifyListeners();
+      _saveTodos();
+    }
   }
 
   // =========================== save data ===================

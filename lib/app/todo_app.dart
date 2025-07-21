@@ -1,6 +1,6 @@
 import 'package:day_05_todo_list_ui/app/theme.dart';
 import 'package:day_05_todo_list_ui/providers/todo_provider.dart';
-import 'package:day_05_todo_list_ui/screens/todo_screen.dart';
+import 'package:day_05_todo_list_ui/screens/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -20,7 +20,7 @@ class TodoApp extends StatelessWidget {
             darkTheme: darkTheme(),
             themeMode:
                 todoProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-            home: const TodoScreen(),
+            home: const SplashScreen(),
           );
         },
       ),

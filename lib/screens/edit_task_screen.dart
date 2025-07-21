@@ -3,37 +3,48 @@ import 'package:day_05_todo_list_ui/providers/todo_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
-class AddTaskBottomSheet extends StatefulWidget {
-  const AddTaskBottomSheet({super.key});
+class EditTaskScreen extends StatefulWidget {
+  final Todo todo;
+
+  const EditTaskScreen({super.key, required this.todo});
 
   @override
-  State<AddTaskBottomSheet> createState() => _AddTaskBottomSheetState();
+  State<EditTaskScreen> createState() => _EditTaskScreenState();
 }
 
-class _AddTaskBottomSheetState extends State<AddTaskBottomSheet>
-    with SingleTickerProviderStateMixin {
+class _EditTaskScreenState extends State<EditTaskScreen> with SingleTickerProviderStateMixin {
   final formKey = GlobalKey<FormState>();
-  final _titleController = TextEditingController();
-  final _descriptionController = TextEditingController();
-  DateTime? selectedDate;
-  TimeOfDay? selectedTime;
-  Priority selectedPriority = Priority.medium;
+  late TextEditingController _titleController;
+  late TextEditingController _descriptionController;
+  late DateTime? selectedDate;
+  late TimeOfDay? selectedTime;
+  late Priority selectedPriority;
 
   late AnimationController _animationController;
-  late Animation<double> _slideAnimation;
 
   @override
   void initState() {
     super.initState();
+    // Initialize controllers with existing todo data
+    _titleController = TextEditingController(text: widget.todo.title);
+    _descriptionController = TextEditingController(text: widget.todo.description);
+    selectedPriority = widget.todo.priority;
+    
+    // Initialize date and time if due date exists
+    if (widget.todo.dueDate != null) {
+      selectedDate = widget.todo.dueDate;
+      selectedTime = TimeOfDay(hour: widget.todo.dueDate!.hour, minute: widget.todo.dueDate!.minute);
+    } else {
+      selectedDate = null;
+      selectedTime = null;
+    }
+
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
     )..forward();
-
-    _slideAnimation = Tween<double>(begin: 1, end: 0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
-    );
   }
 
   @override
@@ -45,84 +56,37 @@ class _AddTaskBottomSheetState extends State<AddTaskBottomSheet>
   }
 
   @override
-  // ============= ui ================
-  @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _slideAnimation,
-      builder: (context, child) {
-        return Transform.translate(
-          offset: Offset(
-            0,
-            _slideAnimation.value * MediaQuery.sizeOf(context).height * 0.8,
-          ),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(24),
-              ),
-            ),
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom,
-            ),
-            child: ScrollConfiguration(
-              behavior: const ScrollBehavior().copyWith(overscroll: false),
-              child: SingleChildScrollView(
-                padding: EdgeInsets.all(24),
-                child: Form(
-                  key: formKey,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _buildHeader(),
-                      const SizedBox(height: 24),
-                      _buildTitleField(),
-                      const SizedBox(height: 16),
-                      _buildDescriptionField(),
-                      const SizedBox(height: 24),
-                      _buildDatePicker(),
-                      const SizedBox(height: 24),
-                      _buildPrioritySelector(),
-                      const SizedBox(height: 32),
-                      _buildActionButtons(),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      },
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Edit Task'),
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_rounded),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: Form(
+        key: formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(24),
+          children: [
+            _buildTitleField(),
+            const SizedBox(height: 16),
+            _buildDescriptionField(),
+            const SizedBox(height: 24),
+            _buildDatePicker(),
+            const SizedBox(height: 24),
+            _buildPrioritySelector(),
+            const SizedBox(height: 32),
+            _buildActionButtons(),
+          ].animate(interval: 50.ms).fadeIn(duration: 300.ms).slideY(begin: 0.1, end: 0),
+        ),
+      ),
     );
   }
 
-  //=============================
-
-  _buildHeader() {
-    return Column(
-      children: [
-        Container(
-          width: 40,
-          height: 4,
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
-            borderRadius: BorderRadius.circular(2),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          'Add New Task',
-          style: Theme.of(
-            context,
-          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
-        ),
-      ],
-    );
-  }
-
-  _buildTitleField() {
+  Widget _buildTitleField() {
     return TextFormField(
       controller: _titleController,
       decoration: InputDecoration(
@@ -131,9 +95,7 @@ class _AddTaskBottomSheetState extends State<AddTaskBottomSheet>
         prefixIcon: const Icon(Icons.title_rounded),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         filled: true,
-        fillColor: Theme.of(
-          context,
-        ).colorScheme.surfaceVariant.withOpacity(0.3),
+        fillColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
       ),
       validator: (value) {
         if (value == null || value.trim().isEmpty) {
@@ -145,7 +107,7 @@ class _AddTaskBottomSheetState extends State<AddTaskBottomSheet>
     );
   }
 
-  _buildDescriptionField() {
+  Widget _buildDescriptionField() {
     return TextFormField(
       controller: _descriptionController,
       maxLines: 3,
@@ -155,23 +117,19 @@ class _AddTaskBottomSheetState extends State<AddTaskBottomSheet>
         prefixIcon: const Icon(Icons.description_rounded),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         filled: true,
-        fillColor: Theme.of(
-          context,
-        ).colorScheme.surfaceVariant.withOpacity(0.3),
+        fillColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
       ),
       textInputAction: TextInputAction.newline,
     );
   }
 
-  _buildDatePicker() {
+  Widget _buildDatePicker() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Due Date & Time',
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
         Row(
@@ -189,9 +147,7 @@ class _AddTaskBottomSheetState extends State<AddTaskBottomSheet>
                       color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
                     ),
                     borderRadius: BorderRadius.circular(12),
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.surfaceVariant.withOpacity(0.3),
+                    color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
                   ),
                   child: Row(
                     children: [
@@ -206,10 +162,9 @@ class _AddTaskBottomSheetState extends State<AddTaskBottomSheet>
                               ? 'Select date'
                               : DateFormat('MMM dd, yyyy').format(selectedDate!),
                           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color:
-                                selectedDate == null
-                                    ? Theme.of(context).colorScheme.outline
-                                    : null,
+                            color: selectedDate == null
+                                ? Theme.of(context).colorScheme.outline
+                                : null,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -241,9 +196,7 @@ class _AddTaskBottomSheetState extends State<AddTaskBottomSheet>
                       color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
                     ),
                     borderRadius: BorderRadius.circular(12),
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.surfaceVariant.withOpacity(0.3),
+                    color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
                     // Gray out if date is not selected
                     gradient: selectedDate == null
                         ? LinearGradient(
@@ -287,27 +240,24 @@ class _AddTaskBottomSheetState extends State<AddTaskBottomSheet>
     );
   }
 
-  _buildPrioritySelector() {
+  Widget _buildPrioritySelector() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Priority',
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
         Row(
-          children:
-              Priority.values.map((priority) {
-                return Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: _buildPriorityChip(priority),
-                  ),
-                );
-              }).toList(),
+          children: Priority.values.map((priority) {
+            return Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: _buildPriorityChip(priority),
+              ),
+            );
+          }).toList(),
         ),
       ],
     );
@@ -325,10 +275,9 @@ class _AddTaskBottomSheetState extends State<AddTaskBottomSheet>
         decoration: BoxDecoration(
           color: isSelected ? color.withOpacity(0.2) : Colors.transparent,
           border: Border.all(
-            color:
-                isSelected
-                    ? color
-                    : Theme.of(context).colorScheme.outline.withOpacity(0.3),
+            color: isSelected
+                ? color
+                : Theme.of(context).colorScheme.outline.withOpacity(0.3),
             width: isSelected ? 2 : 1,
           ),
           borderRadius: BorderRadius.circular(12),
@@ -341,10 +290,9 @@ class _AddTaskBottomSheetState extends State<AddTaskBottomSheet>
             Text(
               _getPriorityLabel(priority),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color:
-                    isSelected
-                        ? color
-                        : Theme.of(context).colorScheme.onSurface,
+                color: isSelected
+                    ? color
+                    : Theme.of(context).colorScheme.onSurface,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
               ),
               textAlign: TextAlign.center,
@@ -440,7 +388,7 @@ class _AddTaskBottomSheetState extends State<AddTaskBottomSheet>
     }
   }
 
-  _buildActionButtons() {
+  Widget _buildActionButtons() {
     return Row(
       children: [
         Expanded(
@@ -477,17 +425,19 @@ class _AddTaskBottomSheetState extends State<AddTaskBottomSheet>
                   }
                 }
                 
-                Provider.of<TodoProvider>(context, listen: false).addTodo(
-                  Todo(
-                    id: DateTime.now().toString(),
-                    title: _titleController.text,
-                    description: _descriptionController.text,
-                    dueDate: combinedDateTime,
-                    priority: selectedPriority,
-                    createdAt: DateTime.now(),
-                  ),
+                // Create updated todo with the same ID
+                final updatedTodo = widget.todo.copyWith(
+                  title: _titleController.text,
+                  description: _descriptionController.text,
+                  dueDate: combinedDateTime,
+                  priority: selectedPriority,
                 );
-                Navigator.pop(context);
+                
+                // Update the todo in the provider
+                Provider.of<TodoProvider>(context, listen: false).updateTodo(updatedTodo);
+                
+                // Return to previous screen
+                Navigator.pop(context, updatedTodo);
               }
             },
             style: ElevatedButton.styleFrom(
@@ -496,7 +446,7 @@ class _AddTaskBottomSheetState extends State<AddTaskBottomSheet>
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: const Text('Add Task'),
+            child: const Text('Save Changes'),
           ),
         ),
       ],

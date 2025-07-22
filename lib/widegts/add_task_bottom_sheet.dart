@@ -1,5 +1,6 @@
 import 'package:day_05_todo_list_ui/models/todo.dart';
 import 'package:day_05_todo_list_ui/providers/todo_provider.dart';
+import 'package:day_05_todo_list_ui/services/notification_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -477,16 +478,22 @@ class _AddTaskBottomSheetState extends State<AddTaskBottomSheet>
                   }
                 }
                 
-                Provider.of<TodoProvider>(context, listen: false).addTodo(
-                  Todo(
-                    id: DateTime.now().toString(),
-                    title: _titleController.text,
-                    description: _descriptionController.text,
-                    dueDate: combinedDateTime,
-                    priority: selectedPriority,
-                    createdAt: DateTime.now(),
-                  ),
+                final todo = Todo(
+                  id: DateTime.now().toString(),
+                  title: _titleController.text,
+                  description: _descriptionController.text,
+                  dueDate: combinedDateTime,
+                  priority: selectedPriority,
+                  createdAt: DateTime.now(),
                 );
+                
+                Provider.of<TodoProvider>(context, listen: false).addTodo(todo);
+                
+                // Show notification snackbar if task has due date
+                if (combinedDateTime != null) {
+                  NotificationHelper.showTaskAddedSnackBar(context, todo);
+                }
+                
                 Navigator.pop(context);
               }
             },

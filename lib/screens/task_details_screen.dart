@@ -1,6 +1,7 @@
 import 'package:day_05_todo_list_ui/models/todo.dart';
 import 'package:day_05_todo_list_ui/providers/todo_provider.dart';
 import 'package:day_05_todo_list_ui/screens/edit_task_screen.dart';
+import 'package:day_05_todo_list_ui/services/notification_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -268,7 +269,14 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
           padding: const EdgeInsets.all(16.0),
           child: ElevatedButton(
             onPressed: () {
+              // Toggle the todo status
               Provider.of<TodoProvider>(context, listen: false).toggleTodoStatus(widget.todo.id);
+              
+              // Show completion notification if task is being marked as completed
+              if (!isCompleted) {
+                NotificationHelper.showTaskCompletedSnackBar(context, widget.todo);
+              }
+              
               Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(

@@ -1,13 +1,17 @@
 import 'dart:convert';
 
 import 'package:day_05_todo_list_ui/models/todo.dart';
+import 'package:day_05_todo_list_ui/services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class TodoProvider extends ChangeNotifier {
+  final NotificationService _notificationService = NotificationService();
+  
   TodoProvider() {
     _loadTodos();
     _loadTheme();
+    _checkTodayTasks();
   }
 
   List<Todo> _todos = [];
@@ -81,10 +85,27 @@ class TodoProvider extends ChangeNotifier {
     // Ensure state is updated before saving
     notifyListeners();
     _saveTodos();
+    
+    // Create notification for the new task
+    _notificationService.createTaskNotification(todo);
+    
+    // Schedule notification if due date exists
+    if (todo.dueDate != null) {
+      _notificationService.scheduleTaskNotification(todo);
+    }
   }
 
   // delete todo
   void deleteTodo(String id) {
+    // Find the todo before removing it
+    final todo = _todos.firstWhere((element) => element.id == id, orElse: () => null as Todo);
+    if (todo != null) {
+      // Cancel any scheduled notifications for this todo
+      _notificationService.cancelNotification(todo.id.hashCode);
+      // Also cancel the 10-minute notification
+      _notificationService.cancelNotification(todo.id.hashCode + 500);
+    }
+    
     // Find and remove the todo with the given id
     _todos.removeWhere((element) => element.id == id);
     // Ensure state is updated before saving
@@ -99,10 +120,23 @@ class TodoProvider extends ChangeNotifier {
     
     // Safety check to prevent index out of range errors
     if (index >= 0 && index < _todos.length) {
+      // Cancel existing notifications
+      _notificationService.cancelNotification(todo.id.hashCode);
+      // Also cancel the 10-minute notification
+      _notificationService.cancelNotification(todo.id.hashCode + 500);
+      
       _todos[index] = todo;
       // Ensure state is updated before saving
       notifyListeners();
       _saveTodos();
+      
+      // Create new notification for the updated task
+      _notificationService.createTaskNotification(todo);
+      
+      // Schedule notification if due date exists
+      if (todo.dueDate != null) {
+        _notificationService.scheduleTaskNotification(todo);
+      }
     }
   }
 
@@ -114,15 +148,29 @@ class TodoProvider extends ChangeNotifier {
     // Safety check to prevent index out of range errors
     if (index >= 0 && index < _todos.length) {
       final todo = _todos[index];
-      _todos[index] = todo.copyWith(
-        status:
-            todo.status == TaskStatus.pending
-                ? TaskStatus.completed
-                : TaskStatus.pending,
-      );
+      final newStatus = todo.status == TaskStatus.pending
+          ? TaskStatus.completed
+          : TaskStatus.pending;
+      
+      final updatedTodo = todo.copyWith(status: newStatus);
+      _todos[index] = updatedTodo;
+      
       // Ensure state is updated before saving
       notifyListeners();
       _saveTodos();
+      
+      // If task is completed, show completion notification and cancel scheduled notifications
+      if (newStatus == TaskStatus.completed) {
+        _notificationService.showTaskCompletedNotification(updatedTodo);
+        _notificationService.cancelNotification(todo.id.hashCode);
+        // Also cancel the 10-minute notification
+        _notificationService.cancelNotification(todo.id.hashCode + 500);
+      } else {
+        // If task is marked as pending again, reschedule notification if it has a due date
+        if (todo.dueDate != null) {
+          _notificationService.scheduleTaskNotification(updatedTodo);
+        }
+      }
     }
   }
 
@@ -150,6 +198,13 @@ class TodoProvider extends ChangeNotifier {
       final todosJson = jsonDecode(todosString) as List;
       _todos = todosJson.map((json) => Todo.fromJson(json)).toList();
       notifyListeners();
+      
+      // Reschedule notifications for pending tasks with due dates
+      for (final todo in _todos) {
+        if (todo.status == TaskStatus.pending && todo.dueDate != null) {
+          _notificationService.scheduleTaskNotification(todo);
+        }
+      }
     }
   }
 
@@ -157,5 +212,11 @@ class TodoProvider extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     _isDarkMode = prefs.getBool('isDarkMode') ?? false;
     notifyListeners();
+  }
+  
+  // Check for tasks due today and send a notification
+  Future<void> _checkTodayTasks() async {
+    await Future.delayed(const Duration(seconds: 2)); // Small delay to ensure app is loaded
+    _notificationService.showTaskDueTodayNotification(todayTodos);
   }
 }

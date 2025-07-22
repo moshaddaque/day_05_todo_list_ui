@@ -1,6 +1,7 @@
 import 'package:day_05_todo_list_ui/models/todo.dart';
 import 'package:day_05_todo_list_ui/providers/todo_provider.dart';
 import 'package:day_05_todo_list_ui/screens/task_details_screen.dart';
+import 'package:day_05_todo_list_ui/services/notification_helper.dart';
 import 'package:day_05_todo_list_ui/widegts/add_task_bottom_sheet.dart';
 import 'package:day_05_todo_list_ui/widegts/custom_sliver_app_bar.dart';
 import 'package:flutter/material.dart';
@@ -45,6 +46,11 @@ class _TodoScreenState extends State<TodoScreen> with TickerProviderStateMixin {
       if (!_tabController.indexIsChanging) {
         Provider.of<TodoProvider>(context, listen: false).setTabIndex(_tabController.index);
       }
+    });
+    
+    // Check notification permissions when the screen loads
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      NotificationHelper.checkAndRequestPermission(context);
     });
   }
 
@@ -312,7 +318,16 @@ class _TodoScreenState extends State<TodoScreen> with TickerProviderStateMixin {
     final priorityColor = _getPriorityColor(todo.priority);
     
     return GestureDetector(
-      onTap: () => provider.toggleTodoStatus(todo.id),
+      onTap: () {
+        // Toggle the todo status
+        provider.toggleTodoStatus(todo.id);
+        
+        // Show completion notification if task is being marked as completed
+        // We need to check the opposite of current status since we're toggling
+        if (!isCompleted) {
+          NotificationHelper.showTaskCompletedSnackBar(context, todo);
+        }
+      },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         width: 28,

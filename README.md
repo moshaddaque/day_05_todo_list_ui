@@ -116,6 +116,14 @@ TodoZen uses the Awesome Notifications package to provide rich, interactive noti
 - Intuitive task creation and editing interfaces
 - Responsive design that works on various screen sizes
 
+## 📸 Screenshots
+
+<p align="center">
+  <img src="assets/screenshot_light.png" width="250" alt="Light Theme">
+  <img src="assets/screenshot_night.png" width="250" alt="Dark Theme">
+  <img src="assets/screenshot_notification.png" width="250" alt="Notifications">
+</p>
+
 ## 📝 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

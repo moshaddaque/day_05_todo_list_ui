@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:day_05_todo_list_ui/screens/todo_screen.dart';
+import 'package:todozen/screens/todo_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

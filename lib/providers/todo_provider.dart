@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:day_05_todo_list_ui/models/todo.dart';
-import 'package:day_05_todo_list_ui/services/notification_service.dart';
+import 'package:todozen/models/todo.dart';
+import 'package:todozen/services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

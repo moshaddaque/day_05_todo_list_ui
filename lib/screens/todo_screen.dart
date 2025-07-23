@@ -1,9 +1,9 @@
-import 'package:day_05_todo_list_ui/models/todo.dart';
-import 'package:day_05_todo_list_ui/providers/todo_provider.dart';
-import 'package:day_05_todo_list_ui/screens/task_details_screen.dart';
-import 'package:day_05_todo_list_ui/services/notification_helper.dart';
-import 'package:day_05_todo_list_ui/widegts/add_task_bottom_sheet.dart';
-import 'package:day_05_todo_list_ui/widegts/custom_sliver_app_bar.dart';
+import 'package:todozen/models/todo.dart';
+import 'package:todozen/providers/todo_provider.dart';
+import 'package:todozen/screens/task_details_screen.dart';
+import 'package:todozen/services/notification_helper.dart';
+import 'package:todozen/widegts/add_task_bottom_sheet.dart';
+import 'package:todozen/widegts/custom_sliver_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:provider/provider.dart';

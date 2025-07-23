@@ -7,7 +7,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <application
-        android:label="day_05_todo_list_ui"
+        android:label="TodoZen"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

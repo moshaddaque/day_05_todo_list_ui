@@ -1,6 +1,6 @@
 import 'package:awesome_notifications/awesome_notifications.dart';
-import 'package:day_05_todo_list_ui/app/todo_app.dart';
-import 'package:day_05_todo_list_ui/services/notification_service.dart';
+import 'package:todozen/app/todo_app.dart';
+import 'package:todozen/services/notification_service.dart';
 import 'package:flutter/material.dart';
 
 void main() async {

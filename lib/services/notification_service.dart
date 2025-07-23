@@ -1,6 +1,8 @@
 import 'package:awesome_notifications/awesome_notifications.dart';
-import 'package:day_05_todo_list_ui/models/todo.dart';
+import 'package:todozen/models/todo.dart';
 import 'package:flutter/material.dart';
+import 'dart:io' show Platform;
+import 'dart:async';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -39,7 +41,24 @@ class NotificationService {
   }
 
   Future<bool> requestPermission() async {
-    return await AwesomeNotifications().requestPermissionToSendNotifications();
+    // Request basic notification permissions
+    final permissionResult = await AwesomeNotifications().requestPermissionToSendNotifications();
+    
+    return permissionResult;
+  }
+  
+  Future<bool> isExactAlarmPermissionAllowed() async {
+    if (Platform.isAndroid) {
+      return await AwesomeNotifications().checkPermissionList()
+          .then((permissions) => permissions.contains('SCHEDULE_EXACT_ALARM'));
+    }
+    return true; // On non-Android platforms, assume permission is granted
+  }
+  
+  Future<void> requestExactAlarmPermission() async {
+    if (Platform.isAndroid) {
+      await AwesomeNotifications().showAlarmPage();
+    }
   }
 
   Future<void> createTaskNotification(Todo todo) async {
@@ -63,6 +82,9 @@ class NotificationService {
   Future<void> scheduleTaskNotification(Todo todo) async {
     if (todo.dueDate == null) return;
 
+    // Check if exact alarm permission is granted
+    final hasExactAlarmPermission = await isExactAlarmPermissionAllowed();
+    
     // Schedule notification 30 minutes before due date
     final scheduledDate30Min = todo.dueDate!.subtract(const Duration(minutes: 30));
     
@@ -82,7 +104,11 @@ class NotificationService {
           criticalAlert: false,
           autoDismissible: true,
         ),
-        schedule: NotificationCalendar.fromDate(date: scheduledDate30Min),
+        schedule: NotificationCalendar.fromDate(
+          date: scheduledDate30Min,
+          preciseAlarm: true, // Always try to use precise alarm
+          allowWhileIdle: true, // Allow notification when device is in idle mode
+        ),
       );
     }
     
@@ -105,8 +131,17 @@ class NotificationService {
           criticalAlert: false,
           autoDismissible: true,
         ),
-        schedule: NotificationCalendar.fromDate(date: scheduledDate10Min),
+        schedule: NotificationCalendar.fromDate(
+          date: scheduledDate10Min,
+          preciseAlarm: true, // Always try to use precise alarm
+          allowWhileIdle: true, // Allow notification when device is in idle mode
+        ),
       );
+    }
+    
+    // If exact alarm permission is not granted, log a warning
+    if (!hasExactAlarmPermission && Platform.isAndroid) {
+      debugPrint('WARNING: Exact alarm permission not granted. Notifications may not be delivered at the exact time.');
     }
   }
 

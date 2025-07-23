@@ -1,6 +1,6 @@
-import 'package:day_05_todo_list_ui/models/todo.dart';
-import 'package:day_05_todo_list_ui/providers/todo_provider.dart';
-import 'package:day_05_todo_list_ui/services/notification_helper.dart';
+import 'package:todozen/models/todo.dart';
+import 'package:todozen/providers/todo_provider.dart';
+import 'package:todozen/services/notification_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';

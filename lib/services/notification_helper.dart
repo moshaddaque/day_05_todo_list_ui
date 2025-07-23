@@ -1,6 +1,6 @@
 import 'package:awesome_notifications/awesome_notifications.dart';
-import 'package:day_05_todo_list_ui/models/todo.dart';
-import 'package:day_05_todo_list_ui/services/notification_service.dart';
+import 'package:todozen/models/todo.dart';
+import 'package:todozen/services/notification_service.dart';
 import 'package:flutter/material.dart';
 
 class NotificationHelper {
@@ -11,6 +11,42 @@ class NotificationHelper {
     final isAllowed = await AwesomeNotifications().isNotificationAllowed();
     if (!isAllowed) {
       await _showPermissionDialog(context);
+    }
+    
+    // Also check and request exact alarm permission
+    await checkAndRequestExactAlarmPermission(context);
+  }
+  
+  // Check and request exact alarm permission
+  static Future<void> checkAndRequestExactAlarmPermission(BuildContext context) async {
+    // Only proceed on Android platform
+    if (!await _notificationService.isExactAlarmPermissionAllowed()) {
+      // Show dialog explaining the importance of the permission
+      if (context.mounted) {
+        final shouldRequest = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Precise Timing Permission'),
+            content: const Text(
+                'For notifications to arrive at the exact scheduled time, this app needs the "Schedule Exact Alarm" permission. Without this permission, notifications may be delayed.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Later'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Grant Permission'),
+              ),
+            ],
+          ),
+        ) ?? false;
+        
+        // If user agrees to grant permission, take them to the settings page
+        if (shouldRequest && context.mounted) {
+          await _notificationService.requestExactAlarmPermission();
+        }
+      }
     }
   }
   

@@ -1,6 +1,6 @@
-import 'package:day_05_todo_list_ui/app/theme.dart';
-import 'package:day_05_todo_list_ui/providers/todo_provider.dart';
-import 'package:day_05_todo_list_ui/screens/splash_screen.dart';
+import 'package:todozen/app/theme.dart';
+import 'package:todozen/providers/todo_provider.dart';
+import 'package:todozen/screens/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
